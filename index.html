@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>POSWD</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-900 text-white flex flex-col h-screen overflow-hidden select-none">
+
+    <!-- TELA ABERTURA DO DIA -->
+    <div id="tela-dia" class="hidden flex flex-col items-center justify-center h-full p-6 bg-gray-900 absolute inset-0 z-50">
+        <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 w-full max-w-sm shadow-2xl text-center">
+            <span class="text-3xl">&#x26A1;</span>
+            <h1 class="text-2xl font-bold mt-2">POS<span class="text-amber-500">WD</span></h1>
+            <p class="text-xs text-gray-400 mt-1 mb-1">O dia está fechado.</p>
+            <p class="text-xs text-gray-500 mb-4" id="infoUltimoFecho"></p>
+            <p class="text-xs text-gray-400 mb-3">Abertura do Dia — PIN do ADMIN ou CAIXA</p>
+            <input type="password" id="inputCodigoDia" placeholder="PIN de acesso" class="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-center text-xl tracking-widest text-amber-500 mb-3 focus:outline-none focus:border-amber-500">
+            <input type="number" id="inputAberturaMontante" placeholder="Montante de abertura (MT)" class="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-center text-xl text-emerald-400 mb-4 focus:outline-none focus:border-amber-500">
+            <button onclick="abrirDia()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition">Abrir o Dia</button>
+        </div>
+    </div>
+
+    <!-- TELA DE LOGIN -->
+    <div id="tela-login" class="hidden flex flex-col items-center justify-center h-full p-6 bg-gray-900 absolute inset-0 z-50">
+        <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 w-full max-w-sm shadow-2xl text-center">
+            <span class="text-3xl">&#x26A1;</span>
+            <h1 class="text-2xl font-bold mt-2">POS<span class="text-amber-500">WD</span></h1>
+            <p class="text-xs text-gray-400 mt-1 mb-6">Insira o seu código PIN para entrar</p>
+            <input type="password" id="inputCodigo" placeholder="PIN de acesso" class="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-center text-xl tracking-widest text-amber-500 mb-4 focus:outline-none focus:border-amber-500">
+            <button onclick="autenticarPorCodigo()" class="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-xl transition">Entrar no Sistema</button>
+            <p id="infoLoginDia" class="text-xs text-gray-500 mt-3"></p>
+        </div>
+    </div>
+
+    <!-- APLICAÇÃO PRINCIPAL -->
+    <div id="app-container" class="flex flex-col h-screen hidden">
+        <header class="bg-gray-800 p-4 flex justify-between items-center shadow-md border-b border-gray-700">
+            <div class="flex items-center space-x-2">
+                <span class="text-amber-500 text-xl">&#x26A1;</span>
+                <h1 class="text-lg font-bold">POS<span class="text-amber-500">WD</span></h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="infoSessao" class="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full text-xs font-semibold hidden"></span>
+                <span id="badgePerfil" class="bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-full text-xs font-semibold uppercase"></span>
+                <button id="btnFecharDia" onclick="fecharDia()" class="bg-rose-700 hover:bg-rose-600 text-white px-2.5 py-1.5 rounded-lg text-xs hidden">Fechar o Dia</button>
+                <button onclick="logout()" class="bg-gray-700 hover:bg-rose-900 text-gray-300 hover:text-rose-200 px-2.5 py-1.5 rounded-lg text-xs" title="Fechar Sessão"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg></button>
+            </div>
+        </header>
+
+        <nav id="navBar" class="bg-gray-800 flex justify-around border-b border-gray-700 text-xs font-medium"></nav>
+
+        <main class="flex-1 overflow-y-auto p-4 relative">
+
+            <!-- MESAS -->
+            <section id="area-mesas-geral" class="hidden flex flex-col h-full">
+                <div id="sub-servente-mesas">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Gestão de Mesas e Zonas</h2>
+                    </div>
+                    <div id="filtroZonas" class="flex gap-2 overflow-x-auto pb-2 mb-3"></div>
+                    <div class="grid grid-cols-2 gap-3 pb-6" id="gridMesasServente"></div>
+                </div>
+                <div id="sub-servente-menu" class="hidden flex-col h-full">
+                    <div class="flex justify-between items-center mb-2">
+                        <button onclick="voltarParaMesas()" class="text-xs bg-gray-700 px-3 py-1.5 rounded-lg"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Voltar Mesas</button>
+                        <span id="tituloMesaAtiva" class="font-bold text-amber-500 text-sm"></span>
+                    </div>
+                    <div class="grid grid-cols-5 gap-1 bg-gray-800 p-1 rounded-xl mb-3 text-center text-[11px] font-bold">
+                        <button onclick="mudarCategoriaMenu('Entrada')" id="tabEntrada" class="py-2 rounded-lg bg-amber-500 text-black leading-tight">Entradas</button>
+                        <button onclick="mudarCategoriaMenu('Comida')" id="tabComida" class="py-2 rounded-lg text-gray-400 leading-tight">Comida</button>
+                        <button onclick="mudarCategoriaMenu('Sobremesa')" id="tabSobremesa" class="py-2 rounded-lg text-gray-400 leading-tight">Sobremesa</button>
+                        <button onclick="mudarCategoriaMenu('Bebida c/Álcool')" id="tabBebidaAlcool" class="py-2 rounded-lg text-gray-400 leading-tight">Bebidas<br>c/Álcool</button>
+                        <button onclick="mudarCategoriaMenu('Bebida s/Álcool')" id="tabBebidaNaoAlcool" class="py-2 rounded-lg text-gray-400 leading-tight">Bebidas<br>s/Álcool</button>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2.5 overflow-y-auto flex-1 pb-20" id="listaProdutosServente"></div>
+                    <div class="absolute bottom-2 left-4 right-4 bg-gray-800 border border-gray-700 p-3 rounded-xl flex justify-between items-center shadow-xl">
+                        <div>
+                            <span class="text-[10px] text-gray-400 block">Itens Selecionados</span>
+                            <span id="totalCarrinhoParcial" class="text-sm font-black text-amber-400">0.00 MT</span>
+                        </div>
+                        <button onclick="enviarComanda()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2.5 rounded-lg font-bold">Enviar Pedido</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CAIXA -->
+            <section id="area-caixa" class="hidden">
+                <h2 class="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Contas Prontas para Pagamento</h2>
+                <div class="space-y-3" id="listaContasCaixa"></div>
+            </section>
+
+            <!-- FATURAÇÃO -->
+            <section id="area-faturacao" class="hidden space-y-4">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="flex items-center gap-2">
+                        <button onclick="voltarAoPainel()" class="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Voltar ao Painel</button>
+                        <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Recibos e Facturação</h2>
+                    </div>
+                    <button onclick="exportarFacturasCSV()" class="bg-emerald-600 hover:bg-emerald-500 text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar CSV
+                    </button>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                    <div class="bg-gray-800 p-3 rounded-xl border border-gray-700">
+                        <span class="text-gray-400 block">Recibos Hoje</span>
+                        <span id="contadorFacturasHoje" class="text-lg font-black text-amber-400">0</span>
+                    </div>
+                    <div class="bg-gray-800 p-3 rounded-xl border border-gray-700">
+                        <span class="text-gray-400 block">Total Hoje</span>
+                        <span id="totalFacturasHoje" class="text-lg font-black text-emerald-400">0.00 MT</span>
+                    </div>
+                    <div class="bg-gray-800 p-3 rounded-xl border border-gray-700">
+                        <span class="text-gray-400 block">Total Geral</span>
+                        <span id="totalFacturasGeral" class="text-lg font-black text-blue-400">0.00 MT</span>
+                    </div>
+                </div>
+                <div class="flex gap-2 overflow-x-auto pb-2" id="filtroZonasFacturas"></div>
+                <div class="space-y-3" id="listaFacturas"></div>
+            </section>
+
+            <!-- DESPESAS -->
+            <section id="area-despesas" class="hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <button onclick="voltarAoPainel()" class="text-xs bg-gray-700 px-3 py-1.5 rounded-lg">Voltar ao Painel</button>
+                    <button onclick="abrirModalDespesa()" class="bg-rose-700 hover:bg-rose-600 text-xs px-3 py-2 rounded-lg font-bold">+ Registar Despesa</button>
+                </div>
+                <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Despesas</h2>
+                <div class="bg-gray-800 border border-gray-700 p-3 rounded-xl flex justify-between items-center">
+                    <span class="text-xs text-gray-400">Total registado hoje</span>
+                    <strong id="totalDespesasHoje" class="text-lg text-rose-400">0.00 MT</strong>
+                </div>
+                <div id="listaDespesas" class="space-y-2"></div>
+            </section>
+
+            <!-- HISTORICO DE DIAS -->
+            <section id="area-historico-dias" class="hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <button onclick="voltarAoPainel()" class="text-xs bg-gray-700 px-3 py-1.5 rounded-lg">Voltar ao Painel</button>
+                    <button onclick="exportarHistoricoDiasCSV()" class="bg-emerald-600 text-xs px-3 py-2 rounded-lg font-bold">Exportar CSV</button>
+                </div>
+                <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Histórico de Dias Fechados</h2>
+                <div id="listaHistoricoDias" class="space-y-2"></div>
+            </section>
+
+            <!-- CLIENTES -->
+            <section id="area-clientes" class="hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <button onclick="voltarAoPainel()" class="text-xs bg-gray-700 px-3 py-1.5 rounded-lg">Voltar ao Painel</button>
+                    <button onclick="abrirModalCliente()" class="bg-blue-600 text-xs px-3 py-2 rounded-lg font-bold">+ Novo Cliente</button>
+                </div>
+                <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Clientes</h2>
+                <input id="pesquisaClientes" oninput="renderClientes()" placeholder="Pesquisar nome ou telefone" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-white">
+                <div id="listaClientes" class="space-y-2"></div>
+            </section>
+
+            <!-- DIVIDAS -->
+            <section id="area-dividas" class="hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <button onclick="voltarAoPainel()" class="text-xs bg-gray-700 px-3 py-1.5 rounded-lg">Voltar ao Painel</button>
+                    <strong id="totalDividasAbertas" class="text-rose-400 text-sm">0.00 MT</strong>
+                </div>
+                <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Dívidas de Clientes</h2>
+                <div id="listaDividas" class="space-y-2"></div>
+            </section>
+
+            <!-- SUPERVISOR -->
+            <section id="area-supervisor" class="hidden space-y-4">
+                <h2 class="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Painel do Supervisor</h2>
+                <div class="grid grid-cols-1 gap-3">
+                    <button onclick="abrirModalProduto()" class="w-full bg-blue-600 hover:bg-blue-500 p-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Adicionar Produto / Stock
+                    </button>
+                </div>
+                <div class="mt-4">
+                    <h3 class="text-xs text-gray-400 uppercase font-semibold mb-2">Gestão Rápida de Preços & Stock</h3>
+                    <div class="flex gap-2 overflow-x-auto pb-2 mb-2" id="filtroZonaProdutosSup"></div>
+                    <div id="listaProdutosSupervisor" class="space-y-2"></div>
+                </div>
+            </section>
+
+            <!-- ADMIN -->
+            <section id="area-admin" class="hidden space-y-4">
+                <h2 class="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wider">Painel Administrativo Total</h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 text-center">
+                        <svg class="icon icon-lg text-amber-500 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        <h4 class="font-bold text-sm">Faturamento</h4>
+                        <p class="text-lg font-black text-emerald-400">14.500 MT</p>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 text-center">
+                        <svg class="icon icon-lg text-amber-500 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <h4 class="font-bold text-sm">Equipe Ativa</h4>
+                        <p class="text-lg font-black text-blue-400" id="contadorFuncionarios">4</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-2">
+                    <button onclick="abrirModalNovaMesa()" class="w-full bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> Nova Mesa e Zona
+                    </button>
+                    <button onclick="abrirModalProduto()" class="w-full bg-purple-600 hover:bg-purple-500 p-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg> Gerir Menu & Produtos
+                    </button>
+                    <button onclick="abrirGestaoEquipe()" class="w-full bg-indigo-600 hover:bg-indigo-500 p-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg> Gestão de Funcionários
+                    </button>
+                    <button onclick="mostrarFaturacao()" class="w-full bg-amber-600 hover:bg-amber-500 p-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> Facturação
+                    </button>
+                </div>
+                <div class="mt-4">
+                    <h3 class="text-xs text-gray-400 uppercase font-semibold mb-2">Lista Global de Produtos & Preços</h3>
+                    <div class="flex gap-2 overflow-x-auto pb-2 mb-2" id="filtroZonaProdutos"></div>
+                    <div id="listaProdutosAdmin" class="space-y-2"></div>
+                </div>
+            </section>
+
+            <!-- FORNECEDORES & ENTRADAS -->
+            <section id="area-fornecedores" class="hidden space-y-4">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="flex items-center gap-2">
+                        <button onclick="voltarAoPainel()" class="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Voltar ao Painel</button>
+                        <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Fornecedores & Entradas de Produtos</h2>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="abrirModalNovoFornecedor()" class="w-full bg-emerald-600 hover:bg-emerald-500 p-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> Novo Fornecedor
+                    </button>
+                    <button onclick="abrirModalLancarFactura()" class="w-full bg-amber-600 hover:bg-amber-500 p-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Lançar Factura de Entrada
+                    </button>
+                </div>
+
+                <div>
+                    <h3 class="text-xs text-gray-400 uppercase font-semibold mb-2">Lista de Fornecedores</h3>
+                    <div id="listaFornecedores" class="space-y-2"></div>
+                </div>
+
+                <div>
+                    <h3 class="text-xs text-gray-400 uppercase font-semibold mb-2">Facturas de Entrada (Compras)</h3>
+                    <div id="listaFacturasCompra" class="space-y-2 pb-6"></div>
+                </div>
+            </section>
+
+            <!-- GESTÃO DE EQUIPE -->
+            <section id="area-gestao-equipe" class="hidden space-y-4">
+                <div class="flex justify-between items-center mb-2">
+                    <button onclick="fecharGestaoEquipe()" class="text-xs bg-gray-700 px-3 py-1.5 rounded-lg"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Voltar ao Painel</button>
+                    <button onclick="abrirModalNovoFuncionario()" class="bg-emerald-600 hover:bg-emerald-500 text-xs px-3 py-1.5 rounded-lg font-bold"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Novo Funcionário</button>
+                </div>
+                <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Controlo de Equipe, Nomes e PINs</h2>
+                <div id="listaEquipeGestao" class="space-y-2.5 pb-6"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL GENÉRICO -->
+    <div id="modalGenerico" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 w-full max-w-sm shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h3 id="modalTitulo" class="font-bold text-base mb-3 text-amber-500">Editar</h3>
+            <div id="modalConteudo" class="space-y-3"></div>
+            <div class="flex gap-2 mt-4">
+                <button onclick="fecharModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 py-2.5 rounded-xl font-bold text-xs">Cancelar</button>
+                <button id="modalBtnSalvar" class="flex-1 bg-amber-500 hover:bg-amber-400 text-black py-2.5 rounded-xl font-bold text-xs">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
